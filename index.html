@@ -9,10 +9,12 @@
 html,body{margin:0;height:100%;font-family:Arial,sans-serif}
 .page{display:none;height:100vh}
 .show{display:block}
+
+/* HOME */
 #home{
 background:url('image.png') center/cover no-repeat;
-color:#fff;
 position:relative;
+color:#fff;
 }
 #home::before{
 content:'';
@@ -20,32 +22,77 @@ position:absolute;inset:0;
 background:rgba(0,0,0,.45);
 }
 .homebox{
-position:relative;z-index:2;
+position:relative;
+z-index:2;
 height:100%;
 display:flex;
 flex-direction:column;
 justify-content:space-between;
 padding:14px;
 }
-.flags{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap}
-.flags button,.topbar button,.topbar select,.topbar input{
-padding:10px;border:none;border-radius:12px
+
+/* Lingue */
+.flags{
+display:flex;
+justify-content:flex-end;
+gap:8px;
+flex-wrap:wrap;
 }
-.hero{text-align:center;margin-top:8vh}
-.hero h1{
-font-size:clamp(34px,8vw,74px);
-margin:0;color:#f3d18b
+.flag{
+padding:10px 12px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+background:rgba(255,255,255,.9);
+font-weight:700;
 }
-.hero p{font-size:18px}
-.mainbtn{
-background:#0c4f77;color:#fff;
-font-weight:700;cursor:pointer
+
+/* Bottone blu reale della foto */
+.big-map-btn{
+width:280px;
+height:170px;
+border-radius:22px;
+background:#003c63;
+color:#fff;
+border:2px solid rgba(255,255,255,.2);
+font-size:34px;
+font-weight:800;
+cursor:pointer;
+box-shadow:0 8px 20px rgba(0,0,0,.35);
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+line-height:1.1;
+margin-left:60px;
+margin-bottom:140px;
 }
+
 .footer{
-background:#111;color:#fff;
-text-align:center;padding:10px
+background:#111;
+color:#fff;
+text-align:center;
+padding:10px;
 }
 .footer b{font-weight:900}
+
+.rss{
+background:#111;
+color:#fff;
+padding:8px;
+overflow:hidden;
+white-space:nowrap;
+}
+.move{
+display:inline-block;
+animation:mar 20s linear infinite;
+}
+@keyframes mar{
+from{transform:translateX(100%)}
+to{transform:translateX(-100%)}
+}
+
+/* MAPPA */
 #mapPage{background:#111;color:#fff}
 .topbar{
 padding:8px;
@@ -53,22 +100,14 @@ display:flex;
 gap:6px;
 flex-wrap:wrap;
 align-items:center;
-background:#111
+background:#111;
+}
+.topbar button,.topbar select,.topbar input{
+padding:10px;
+border:none;
+border-radius:12px;
 }
 #map{height:calc(100vh - 140px)}
-.rss{
-background:#111;color:#fff;
-overflow:hidden;white-space:nowrap;
-padding:8px
-}
-.move{
-display:inline-block;
-animation:mar 18s linear infinite
-}
-@keyframes mar{
-from{transform:translateX(100%)}
-to{transform:translateX(-100%)}
-}
 a{color:#0056ff}
 </style>
 </head>
@@ -79,21 +118,23 @@ a{color:#0056ff}
 <div class="homebox">
 
 <div class="flags">
-<button onclick="setLang('it')">🇮🇹</button>
-<button onclick="setLang('en')">🇬🇧</button>
-<button onclick="setLang('fr')">🇫🇷</button>
-<button onclick="setLang('es')">🇪🇸</button>
-<button onclick="setLang('de')">🇩🇪</button>
+<button class="flag" onclick="setLang('it')">IT</button>
+<button class="flag" onclick="setLang('en')">GB</button>
+<button class="flag" onclick="setLang('fr')">FR</button>
+<button class="flag" onclick="setLang('es')">ES</button>
+<button class="flag" onclick="setLang('de')">DE</button>
 </div>
 
-<div class="hero">
-<h1>I Giganti della Sardegna</h1>
-<p id="subtitle">Esplora i luoghi storici della Sardegna</p>
-<button class="mainbtn" onclick="openMap()">ESPLORA MAPPA</button>
+<div style="flex:1;display:flex;align-items:end">
+<button class="big-map-btn" onclick="openMap()" id="mainMapBtn">
+ESPLORA<br>MAPPA
+</button>
 </div>
 
 <div>
-<div class="rss"><div class="move">prova prova prova • prova prova prova • prova prova prova •</div></div>
+<div class="rss">
+<div class="move">prova prova prova • prova prova prova • prova prova prova •</div>
+</div>
 <div class="footer"><b>PASSAMONTI</b>_COMMUNICATION</div>
 </div>
 
@@ -102,9 +143,14 @@ a{color:#0056ff}
 
 <!-- MAPPA -->
 <div id="mapPage" class="page">
+
 <div class="topbar">
-<button id="homeBtn" onclick="goHome()">Home</button>
-<button onclick="gps()">GPS</button>
+<div id="titleMap" style="font-weight:800;color:#f3d18b;margin-right:auto">
+I Giganti della Sardegna
+</div>
+
+<button onclick="goHome()" id="homeBtn">Home</button>
+<button onclick="gps()" id="gpsBtn">GPS</button>
 
 <select id="filter" onchange="draw()">
 <option value="all">Tutti</option>
@@ -114,45 +160,61 @@ a{color:#0056ff}
 <option value="Comune">Comuni</option>
 </select>
 
-<input id="search" placeholder="Cerca">
+<input id="search" placeholder="Cerca luogo">
 <button onclick="findPlace()">Vai</button>
 </div>
 
 <div id="map"></div>
 
-<div class="rss"><div class="move">prova prova prova • prova prova prova • prova prova prova •</div></div>
+<div class="rss">
+<div class="move">prova prova prova • prova prova prova • prova prova prova •</div>
+</div>
+
 <div class="footer"><b>PASSAMONTI</b>_COMMUNICATION</div>
+
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
 let lang='it';
 let map;
 let started=false;
 let layers=[];
 
-const data = [
+/* TESTI MULTILINGUA */
+const txt={
+it:{home:'Home',gps:'GPS',search:'Cerca luogo',all:'Tutti',title:'I Giganti della Sardegna'},
+en:{home:'Home',gps:'GPS',search:'Search place',all:'All',title:'The Giants of Sardinia'},
+fr:{home:'Accueil',gps:'GPS',search:'Rechercher',all:'Tous',title:'Les Géants de Sardaigne'},
+es:{home:'Inicio',gps:'GPS',search:'Buscar lugar',all:'Todos',title:'Los Gigantes de Cerdeña'},
+de:{home:'Start',gps:'GPS',search:'Ort suchen',all:'Alle',title:'Die Giganten Sardiniens'}
+};
+
+function setLang(l){
+lang=l;
+homeBtn.textContent=txt[l].home;
+gpsBtn.textContent=txt[l].gps;
+search.placeholder=txt[l].search;
+titleMap.textContent=txt[l].title;
+filter.options[0].text=txt[l].all;
+if(started) draw();
+}
+
+/* DATI */
+const data=[
 ['Bosa','Borgo','Bosa',40.3,8.5,'blue','Bosa'],
 ['Castelsardo','Borgo','Castelsardo',40.92,8.71,'blue','Castelsardo'],
-['Lollove','Borgo','Nuoro',40.365,9.3324,'blue','Lollove'],
-
 ['Su Nuraxi','Nuraghe','Barumini',39.703,8.999,'red','Su_Nuraxi'],
 ['Nuraghe Arrubiu','Nuraghe','Orroli',39.662,9.298,'red','Nuraghe_Arrubiu'],
 ['Palmavera','Nuraghe','Alghero',40.604,8.254,'red','Palmavera'],
 ['Santu Antine','Nuraghe','Torralba',40.515,8.77,'red','Nuraghe_Santu_Antine'],
-
-['Anghelu Ruju','Domus', 'Alghero',40.6275,8.3197,'green','Anghelu_Ruju'],
+['Anghelu Ruju','Domus','Alghero',40.6275,8.3197,'green','Anghelu_Ruju'],
 ['Montessu','Domus','Villaperuccio',39.1242,8.6658,'green','Necropoli_di_Montessu'],
-
 ['Barumini','Comune','Barumini',39.704,9.004,'white','Barumini'],
 ['Torralba','Comune','Torralba',40.513,8.760,'white','Torralba'],
 ['Orroli','Comune','Orroli',39.693,9.250,'white','Orroli']
 ];
-
-function setLang(l){
-lang=l;
-homeBtn.textContent=(lang==='fr')?'Accueil':(lang==='es')?'Inicio':(lang==='de')?'Start':'Home';
-}
 
 function openMap(){
 home.classList.remove('show');
@@ -160,7 +222,12 @@ mapPage.classList.add('show');
 
 if(!started){
 map=L.map('map').setView([40,9],8);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{maxZoom:19}
+).addTo(map);
+
 draw();
 started=true;
 setTimeout(()=>map.invalidateSize(),300);
@@ -184,18 +251,19 @@ layers=[];
 function draw(){
 clearMap();
 
-const f=filter.value;
-const arr=(f==='all')?data:data.filter(x=>x[1]===f);
+let f=filter.value;
+let arr=(f==='all')?data:data.filter(x=>x[1]===f);
 
 arr.forEach(p=>{
 let style;
+
 if(p[1]==='Comune'){
 style={radius:7,color:'#fff',fillOpacity:0,weight:2};
 }else{
 style={radius:7,color:p[5],fillColor:p[5],fillOpacity:1};
 }
 
-const m=L.circleMarker([p[3],p[4]],style)
+let m=L.circleMarker([p[3],p[4]],style)
 .addTo(map)
 .bindPopup(
 '<b><a target=_blank href="'+wiki(p[6])+'">'+p[0]+'</a></b><br>'+p[1]+'<br>'+p[2]
@@ -206,8 +274,8 @@ layers.push(m);
 }
 
 function findPlace(){
-const q=search.value.toLowerCase();
-const p=data.find(x=>x[0].toLowerCase().includes(q));
+let q=search.value.toLowerCase();
+let p=data.find(x=>x[0].toLowerCase().includes(q));
 if(p){map.setView([p[3],p[4]],12);}
 }
 
@@ -218,5 +286,6 @@ L.marker([pos.coords.latitude,pos.coords.longitude]).addTo(map);
 });
 }
 </script>
+
 </body>
 </html>
