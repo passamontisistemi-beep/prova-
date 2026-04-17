@@ -1,17 +1,112 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>I Giganti della Sardegna</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I Giganti della Sardegna</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    html,body{margin:0;height:100%;font-family:Arial,sans-serif}
+    .page{display:none;height:100vh}
+    .show{display:block}
+    #home{background:#111;color:#fff;text-align:center;padding:40px}
+    .btn{padding:12px 18px;border:none;border-radius:12px;background:#003c63;color:#fff;font-weight:bold;cursor:pointer}
+    #mapPage{background:#111;color:#fff}
+    .topbar{padding:10px;background:#111;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    #map{height:80vh}
+    .rss{background:#000;color:#fff;overflow:hidden;white-space:nowrap;padding:8px}
+    .move{display:inline-block;animation:mar 60s linear infinite}
+    @keyframes mar{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+    .footer{text-align:center;padding:10px;background:#000}
+  </style>
 </head>
 <body>
-<style>html,body{margin:0;height:100%;font-family:Arial}#home,#mapPage{display:none;height:100vh}.show{display:block}#home{background:#111;color:#fff;padding:30px;text-align:center}button{padding:10px 14px;border:none;border-radius:12px;margin:4px}#map{height:80vh}</style>
-<div id='home' class='show'><h1>I Giganti della Sardegna</h1><button onclick='openMap()' style='background:#003c63;color:#fff;font-size:20px'>ESPLORA MAPPA</button><div style='background:#111;color:#fff;overflow:hidden;white-space:nowrap'><div style='display:inline-block;animation:mar 60s linear infinite'>Questo spazio è riservato alla pubblicazione delle informazioni sul patrimonio enogastronomico di quell'area e le ultime notizie ed eventi acquisite dal sito AGID dei comuni limitrofi •</div></div><p><b>PASSAMONTI</b>_COMMUNICATION</p></div>
-<div id='mapPage'><button onclick='goHome()'>Home</button><button onclick='gps()'>GPS</button><div id='map'></div><p><b>PASSAMONTI</b>_COMMUNICATION</p></div>
-<link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'><script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
+
+<div id="home" class="page show">
+  <h1>I Giganti della Sardegna</h1>
+  <p>Mappa interattiva dei luoghi storici della Sardegna</p>
+  <button class="btn" onclick="openMap()">ESPLORA MAPPA</button>
+  <div class="rss"><div class="move">Questo spazio è riservato alla pubblicazione delle informazioni sul patrimonio enogastronomico di quell'area e le ultime notizie ed eventi acquisite dal sito AGID dei comuni limitrofi •</div></div>
+  <div class="footer"><b>PASSAMONTI</b>_COMMUNICATION</div>
+</div>
+
+<div id="mapPage" class="page">
+  <div class="topbar">
+    <button class="btn" onclick="goHome()">Home</button>
+    <button class="btn" onclick="gps()">GPS</button>
+    <select id="filter" onchange="draw()">
+      <option value="all">Tutti</option>
+      <option value="Nuraghe">Nuraghi</option>
+      <option value="Domus">Domus</option>
+      <option value="Borgo">Borghi</option>
+      <option value="Comune">Comuni</option>
+    </select>
+  </div>
+  <div id="map"></div>
+  <div class="rss"><div class="move">Questo spazio è riservato alla pubblicazione delle informazioni sul patrimonio enogastronomico di quell'area e le ultime notizie ed eventi acquisite dal sito AGID dei comuni limitrofi •</div></div>
+  <div class="footer"><b>PASSAMONTI</b>_COMMUNICATION</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-let map,loaded=false;const pts=[['Bosa',40.3,8.5,'blue'],['Castelsardo',40.92,8.71,'blue'],['Lollove',40.365,9.3324,'blue'],['Su Nuraxi',39.703,8.999,'red'],['Nuraghe Arrubiu',39.662,9.298,'red'],['Palmavera',40.604,8.254,'red'],['Santu Antine',40.515,8.77,'red'],['Anghelu Ruju',40.6275,8.3197,'green'],['Montessu',39.1242,8.6658,'green'],['Pranu Mutteddu',39.5761,9.2781,'green'],['Barumini',39.704,9.004,'white'],['Orroli',39.693,9.25,'white']];function openMap(){home.classList.remove('show');mapPage.classList.add('show');if(!loaded){map=L.map('map').setView([40,9],8);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);pts.forEach(p=>L.circleMarker([p[1],p[2]],{radius:7,color:p[3],fillColor:p[3],fillOpacity:1}).addTo(map).bindPopup(p[0]));loaded=true;setTimeout(()=>map.invalidateSize(),200)}}function goHome(){mapPage.classList.remove('show');home.classList.add('show')}function gps(){navigator.geolocation.getCurrentPosition(pos=>map.setView([pos.coords.latitude,pos.coords.longitude],10));}
+let map;
+let loaded=false;
+let layers=[];
+
+const points=[
+  ['Bosa','Borgo','Bosa',40.3,8.5,'blue'],
+  ['Castelsardo','Borgo','Castelsardo',40.92,8.71,'blue'],
+  ['Su Nuraxi','Nuraghe','Barumini',39.703,8.999,'red'],
+  ['Nuraghe Arrubiu','Nuraghe','Orroli',39.662,9.298,'red'],
+  ['Anghelu Ruju','Domus','Alghero',40.6275,8.3197,'green'],
+  ['Montessu','Domus','Villaperuccio',39.1242,8.6658,'green'],
+  ['Barumini','Comune','Barumini',39.704,9.004,'white']
+];
+
+function openMap(){
+  document.getElementById('home').classList.remove('show');
+  document.getElementById('mapPage').classList.add('show');
+
+  if(!loaded){
+    map=L.map('map').setView([40,9],8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+    draw();
+    loaded=true;
+    setTimeout(()=>map.invalidateSize(),300);
+  }
+}
+
+function goHome(){
+  document.getElementById('mapPage').classList.remove('show');
+  document.getElementById('home').classList.add('show');
+}
+
+function draw(){
+  layers.forEach(l=>map.removeLayer(l));
+  layers=[];
+  const type=document.getElementById('filter').value;
+  const arr=(type==='all')?points:points.filter(p=>p[1]===type);
+
+  arr.forEach(p=>{
+    let style;
+    if(p[1]==='Comune'){
+      style={radius:7,color:'#fff',fillOpacity:0,weight:2};
+    }else{
+      style={radius:7,color:p[5],fillColor:p[5],fillOpacity:1};
+    }
+    const marker=L.circleMarker([p[3],p[4]],style)
+      .addTo(map)
+      .bindPopup('<b>'+p[0]+'</b><br>'+p[1]+'<br>'+p[2]);
+    layers.push(marker);
+  });
+}
+
+function gps(){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    map.setView([pos.coords.latitude,pos.coords.longitude],10);
+    L.marker([pos.coords.latitude,pos.coords.longitude]).addTo(map);
+  });
+}
 </script>
 </body>
 </html>
