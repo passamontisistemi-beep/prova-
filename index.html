@@ -1,112 +1,38 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>I Giganti della Sardegna</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <style>
-    html,body{margin:0;height:100%;font-family:Arial,sans-serif}
-    .page{display:none;height:100vh}
-    .show{display:block}
-    #home{background:#111;color:#fff;text-align:center;padding:40px}
-    .btn{padding:12px 18px;border:none;border-radius:12px;background:#003c63;color:#fff;font-weight:bold;cursor:pointer}
-    #mapPage{background:#111;color:#fff}
-    .topbar{padding:10px;background:#111;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    #map{height:80vh}
-    .rss{background:#000;color:#fff;overflow:hidden;white-space:nowrap;padding:8px}
-    .move{display:inline-block;animation:mar 60s linear infinite}
-    @keyframes mar{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
-    .footer{text-align:center;padding:10px;background:#000}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>I Giganti della Sardegna</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+html,body{margin:0;height:100%;font-family:Arial,sans-serif}
+.page{display:none;height:100vh}.show{display:block}
+#home{background:url('image.png') center/cover no-repeat;position:relative;color:#fff}
+#home:before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.wrap{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:16px}
+.flags{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.flag{padding:10px;border:none;border-radius:10px;cursor:pointer}
+.hero{flex:1;display:flex;align-items:end}.cta{margin-left:40px;margin-bottom:120px;background:#003c63;color:#fff;border:none;border-radius:20px;padding:28px 34px;font-size:28px;font-weight:700;cursor:pointer}
+.rss{background:#111;color:#fff;overflow:hidden;white-space:nowrap;padding:8px}.move{display:inline-block;animation:mar 60s linear infinite}@keyframes mar{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+.footer{background:#000;color:#fff;text-align:center;padding:10px}
+#mapPage{background:#111;color:#fff}.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px;background:#111}.btn{padding:10px 14px;border:none;border-radius:10px;cursor:pointer}#map{height:calc(100vh - 140px)}
+a{color:#0af}
+</style>
 </head>
 <body>
-
-<div id="home" class="page show">
-  <h1>I Giganti della Sardegna</h1>
-  <p>Mappa interattiva dei luoghi storici della Sardegna</p>
-  <button class="btn" onclick="openMap()">ESPLORA MAPPA</button>
-  <div class="rss"><div class="move">Questo spazio è riservato alla pubblicazione delle informazioni sul patrimonio enogastronomico di quell'area e le ultime notizie ed eventi acquisite dal sito AGID dei comuni limitrofi •</div></div>
-  <div class="footer"><b>PASSAMONTI</b>_COMMUNICATION</div>
-</div>
-
-<div id="mapPage" class="page">
-  <div class="topbar">
-    <button class="btn" onclick="goHome()">Home</button>
-    <button class="btn" onclick="gps()">GPS</button>
-    <select id="filter" onchange="draw()">
-      <option value="all">Tutti</option>
-      <option value="Nuraghe">Nuraghi</option>
-      <option value="Domus">Domus</option>
-      <option value="Borgo">Borghi</option>
-      <option value="Comune">Comuni</option>
-    </select>
-  </div>
-  <div id="map"></div>
-  <div class="rss"><div class="move">Questo spazio è riservato alla pubblicazione delle informazioni sul patrimonio enogastronomico di quell'area e le ultime notizie ed eventi acquisite dal sito AGID dei comuni limitrofi •</div></div>
-  <div class="footer"><b>PASSAMONTI</b>_COMMUNICATION</div>
-</div>
-
+<div id="home" class="page show"><div class="wrap"><div class="flags"><button class="flag" onclick="setLang('it')">IT</button><button class="flag" onclick="setLang('en')">EN</button><button class="flag" onclick="setLang('fr')">FR</button><button class="flag" onclick="setLang('es')">ES</button><button class="flag" onclick="setLang('de')">DE</button></div><div class="hero"><button class="cta" onclick="openMap()">ESPLORA MAPPA</button></div><div><div class="rss"><div class="move">Questo spazio è riservato alla pubblicazione delle informazioni sul patrimonio enogastronomico di quell'area e le ultime notizie ed eventi acquisite dal sito AGID dei comuni limitrofi •</div></div><div class="footer"><b>PASSAMONTI</b>_COMMUNICATION</div></div></div></div>
+<div id="mapPage" class="page"><div class="top"><div id="title" style="font-weight:700;color:#f3d18b;margin-right:auto">I Giganti della Sardegna</div><button class="btn" onclick="goHome()" id="homeBtn">Home</button><button class="btn" onclick="gps()">GPS</button><select id="filter" onchange="draw()"><option value="all">Tutti</option><option value="Nuraghe">Nuraghi</option><option value="Domus">Domus</option><option value="Borgo">Borghi</option><option value="Comune">Comuni</option></select></div><div id="map"></div><div class="rss"><div class="move">Questo spazio è riservato alla pubblicazione delle informazioni sul patrimonio enogastronomico di quell'area e le ultime notizie ed eventi acquisite dal sito AGID dei comuni limitrofi •</div></div><div class="footer"><b>PASSAMONTI</b>_COMMUNICATION</div></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-let map;
-let loaded=false;
-let layers=[];
-
-const points=[
-  ['Bosa','Borgo','Bosa',40.3,8.5,'blue'],
-  ['Castelsardo','Borgo','Castelsardo',40.92,8.71,'blue'],
-  ['Su Nuraxi','Nuraghe','Barumini',39.703,8.999,'red'],
-  ['Nuraghe Arrubiu','Nuraghe','Orroli',39.662,9.298,'red'],
-  ['Anghelu Ruju','Domus','Alghero',40.6275,8.3197,'green'],
-  ['Montessu','Domus','Villaperuccio',39.1242,8.6658,'green'],
-  ['Barumini','Comune','Barumini',39.704,9.004,'white']
-];
-
-function openMap(){
-  document.getElementById('home').classList.remove('show');
-  document.getElementById('mapPage').classList.add('show');
-
-  if(!loaded){
-    map=L.map('map').setView([40,9],8);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
-    draw();
-    loaded=true;
-    setTimeout(()=>map.invalidateSize(),300);
-  }
-}
-
-function goHome(){
-  document.getElementById('mapPage').classList.remove('show');
-  document.getElementById('home').classList.add('show');
-}
-
-function draw(){
-  layers.forEach(l=>map.removeLayer(l));
-  layers=[];
-  const type=document.getElementById('filter').value;
-  const arr=(type==='all')?points:points.filter(p=>p[1]===type);
-
-  arr.forEach(p=>{
-    let style;
-    if(p[1]==='Comune'){
-      style={radius:7,color:'#fff',fillOpacity:0,weight:2};
-    }else{
-      style={radius:7,color:p[5],fillColor:p[5],fillOpacity:1};
-    }
-    const marker=L.circleMarker([p[3],p[4]],style)
-      .addTo(map)
-      .bindPopup('<b>'+p[0]+'</b><br>'+p[1]+'<br>'+p[2]);
-    layers.push(marker);
-  });
-}
-
-function gps(){
-  navigator.geolocation.getCurrentPosition(pos=>{
-    map.setView([pos.coords.latitude,pos.coords.longitude],10);
-    L.marker([pos.coords.latitude,pos.coords.longitude]).addTo(map);
-  });
-}
+let lang='it',map,started=false,layers=[];
+const labels={it:'I Giganti della Sardegna',en:'The Giants of Sardinia',fr:'Les Géants de Sardaigne',es:'Los Gigantes de Cerdeña',de:'Die Giganten Sardiniens'};
+const pts=[['Bosa','Borgo','Bosa',40.3,8.5,'blue','Bosa'],['Castelsardo','Borgo','Castelsardo',40.92,8.71,'blue','Castelsardo'],['Lollove','Borgo','Nuoro',40.365,9.3324,'blue','Lollove'],['Su Nuraxi','Nuraghe','Barumini',39.703,8.999,'red','Su_Nuraxi'],['Nuraghe Arrubiu','Nuraghe','Orroli',39.662,9.298,'red','Nuraghe_Arrubiu'],['Palmavera','Nuraghe','Alghero',40.604,8.254,'red','Palmavera'],['Santu Antine','Nuraghe','Torralba',40.515,8.77,'red','Nuraghe_Santu_Antine'],['Anghelu Ruju','Domus','Alghero',40.6275,8.3197,'green','Anghelu_Ruju'],['Montessu','Domus','Villaperuccio',39.1242,8.6658,'green','Necropoli_di_Montessu'],['Pranu Mutteddu','Domus','Goni',39.5761,9.2781,'green','Pranu_Mutteddu'],['Barumini','Comune','Barumini',39.704,9.004,'white','Barumini'],['Orroli','Comune','Orroli',39.693,9.25,'white','Orroli'],['Nuoro','Comune','Nuoro',40.321,9.33,'white','Nuoro']];
+function setLang(l){lang=l;document.getElementById('title').textContent=labels[l];draw();}
+function openMap(){document.getElementById('home').classList.remove('show');document.getElementById('mapPage').classList.add('show');if(!started){map=L.map('map').setView([40,9],8);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);started=true;setTimeout(()=>map.invalidateSize(),300);draw();}}
+function goHome(){document.getElementById('mapPage').classList.remove('show');document.getElementById('home').classList.add('show');}
+function wiki(s){return 'https://'+lang+'.wikipedia.org/wiki/'+s;}
+function draw(){if(!started)return;layers.forEach(x=>map.removeLayer(x));layers=[];const f=document.getElementById('filter').value;const arr=f==='all'?pts:pts.filter(p=>p[1]===f);arr.forEach(p=>{let style=p[1]==='Comune'?{radius:7,color:'#fff',fillOpacity:0,weight:2}:{radius:7,color:p[5],fillColor:p[5],fillOpacity:1};const m=L.circleMarker([p[3],p[4]],style).addTo(map).bindPopup('<b><a target="_blank" href="'+wiki(p[6])+'">'+p[0]+'</a></b><br>'+p[1]+'<br>'+p[2]);layers.push(m);});}
+function gps(){navigator.geolocation.getCurrentPosition(pos=>{map.setView([pos.coords.latitude,pos.coords.longitude],10);L.marker([pos.coords.latitude,pos.coords.longitude]).addTo(map);});}
 </script>
 </body>
 </html>
